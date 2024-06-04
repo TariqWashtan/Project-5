@@ -86,7 +86,7 @@ if option == "Home":
 
     # K-Distance Graph for DBSCAN
     st.subheader("K-Distance Graph for DBSCAN")
-    k_dist_sorted_img_path = 'model-deployment\imgs\k-distance.png'
+    k_dist_sorted_img_path = 'model-deployment/imgs/k-distance.png'
     st.image(k_dist_sorted_img_path, caption='K-Distance Graph for DBSCAN')
 
     # Correlation Matrix
