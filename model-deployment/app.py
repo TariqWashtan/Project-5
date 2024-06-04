@@ -81,11 +81,8 @@ if option == "Home":
 
     # Elbow Method for KMeans
     st.subheader("Elbow Method for KMeans")
-    try:
-        wcss_img_path = 'model-deployment/imgs/wcss.png'
-        st.image(wcss_img_path, caption='Elbow Method for KMeans')
-    except FileNotFoundError:
-        st.error("wcss.png file not found. Please make sure the file is in the 'model-deployment/imgs' directory.")
+    wcss_img_path = 'model-deployment/imgs/wcss.png'
+    st.image(wcss_img_path, caption='Elbow Method for KMeans')
 
     # K-Distance Graph for DBSCAN
     st.subheader("K-Distance Graph for DBSCAN")
@@ -93,7 +90,7 @@ if option == "Home":
         k_dist_sorted_img_path = 'model-deployment\imgs\k-distance.png'
         st.image(k_dist_sorted_img_path, caption='K-Distance Graph for DBSCAN')
     except FileNotFoundError:
-        st.error("k_dist_sorted.png file not found. Please make sure the file is in the 'model-deployment/imgs' directory.")
+        st.error("k_dist_sorted.png file not found. Please make sure  the file is in the 'model-deployment/imgs' directory.")
 
     # Correlation Matrix
     st.subheader("Correlation Matrix")
