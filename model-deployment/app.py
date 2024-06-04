@@ -111,6 +111,7 @@ if option == "Home":
     st.subheader("Correlation Matrix")
     try:
         df = pd.read_csv("Data/Cleand_data.csv")  
+        df.drop('Unnamed: 0', axis=1, inplace=True)
         correlation = df.corr(numeric_only=True)
         plt.figure(figsize=(6, 4))
         sns.heatmap(round(correlation, 2), annot=True, cmap='coolwarm')
