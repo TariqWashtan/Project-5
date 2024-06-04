@@ -82,7 +82,7 @@ if option == "Home":
     # Elbow Method for KMeans
     st.subheader("Elbow Method for KMeans")
     try:
-        wcss = joblib.load('models/wcss.pkl')  
+        wcss = joblib.load('model-deployment\models\wcss.pkl')  
         plt.figure(figsize=(10, 6))
         plt.plot(range(1, 20), wcss, marker='o', linestyle='-', color='b')
         plt.title('Elbow Method')
@@ -113,7 +113,7 @@ if option == "Home":
         df = pd.read_csv("Data/Cleand_data.csv")  
         df.drop('Unnamed: 0', axis=1, inplace=True)
         correlation = df.corr(numeric_only=True)
-        plt.figure(figsize=(6, 4))
+        plt.figure(figsize=(8, 6))
         sns.heatmap(round(correlation, 2), annot=True, cmap='coolwarm')
         plt.title('Correlation Matrix')
         st.pyplot(plt)
