@@ -82,30 +82,18 @@ if option == "Home":
     # Elbow Method for KMeans
     st.subheader("Elbow Method for KMeans")
     try:
-        wcss = joblib.load('model-deployment\models\wcss.pkl')  
-        plt.figure(figsize=(10, 6))
-        plt.plot(range(1, 20), wcss, marker='o', linestyle='-', color='b')
-        plt.title('Elbow Method')
-        plt.xlabel('Number of clusters')
-        plt.ylabel('WCSS')
-        plt.grid(True)
-        st.pyplot(plt)
+        wcss_img_path = 'model-deployment/imgs/wcss.png'
+        st.image(wcss_img_path, caption='Elbow Method for KMeans')
     except FileNotFoundError:
-        st.error("wcss.pkl file not found. Please make sure the file is in the 'models' directory.")
+        st.error("wcss.png file not found. Please make sure the file is in the 'model-deployment/imgs' directory.")
 
     # K-Distance Graph for DBSCAN
     st.subheader("K-Distance Graph for DBSCAN")
     try:
-        k_dist_sorted = joblib.load('models/k_dist_sorted.pkl')  
-        plt.figure(figsize=(8, 6))
-        plt.plot(k_dist_sorted)
-        plt.title('K-Distance Graph')
-        plt.xlabel('Points sorted by distance')
-        plt.ylabel('k-distance (eps value)')
-        plt.grid(True)
-        st.pyplot(plt)
+        k_dist_sorted_img_path = 'model-deployment\imgs\k-distance.png'
+        st.image(k_dist_sorted_img_path, caption='K-Distance Graph for DBSCAN')
     except FileNotFoundError:
-        st.error("k_dist_sorted.pkl file not found. Please make sure the file is in the 'models' directory.")
+        st.error("k_dist_sorted.png file not found. Please make sure the file is in the 'model-deployment/imgs' directory.")
 
     # Correlation Matrix
     st.subheader("Correlation Matrix")
