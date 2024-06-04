@@ -86,11 +86,8 @@ if option == "Home":
 
     # K-Distance Graph for DBSCAN
     st.subheader("K-Distance Graph for DBSCAN")
-    try:
-        k_dist_sorted_img_path = 'model-deployment\imgs\k-distance.png'
-        st.image(k_dist_sorted_img_path, caption='K-Distance Graph for DBSCAN')
-    except FileNotFoundError:
-        st.error("k_dist_sorted.png file not found. Please make sure  the file is in the 'model-deployment/imgs' directory.")
+    k_dist_sorted_img_path = 'model-deployment\imgs\k-distance.png'
+    st.image(k_dist_sorted_img_path, caption='K-Distance Graph for DBSCAN')
 
     # Correlation Matrix
     st.subheader("Correlation Matrix")
