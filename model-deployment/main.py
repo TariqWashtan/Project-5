@@ -1,87 +1,37 @@
 from fastapi import FastAPI
-import joblib
 from pydantic import BaseModel
-
-
-
-model = joblib.load('models/knn_model.joblib')
-scaler = joblib.load('models/scaler.joblib')
-
+import pandas as pd
+import joblib
+import os
 
 app = FastAPI()
 
-@app.get("/")
-def root():
-    return "Welcome To Tuwaiq Academy"
+# Load your model
+model_dir = os.path.dirname(__file__)
+kmeans_model = joblib.load(os.path.join(model_dir, 'models/kmeans_model.pkl'))
+dbscan_model = joblib.load(os.path.join(model_dir, 'models/dbscan_model.pkl'))
+scaler = joblib.load(os.path.join(model_dir, 'models/scaler.pkl'))
 
-items = {}
+class PredictionRequest(BaseModel):
+    Score: float
+    Price_Range_encoded: int
+    Category_encoded: int
 
+@app.post("/predict/kmeans")
+async def predict_kmeans(data: PredictionRequest):
+    df = pd.DataFrame([data.dict().values()], columns=data.dict().keys())
+    scaled_data = scaler.transform(df)
+    prediction = kmeans_model.predict(scaled_data)
+    return {"cluster": int(prediction[0])}
 
-# GET request
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Tuwaiq Academy"}
+@app.post("/predict/dbscan")
+async def predict_dbscan(data: PredictionRequest):
+    df = pd.DataFrame([data.dict().values()], columns=data.dict().keys())
+    scaled_data = scaler.transform(df)
+    prediction = dbscan_model.fit_predict(scaled_data)
+    cluster_label = int(prediction[0]) if prediction.size > 0 else -1  # Handle case where no cluster is assigned
+    return {"cluster": cluster_label}
 
-
-# get request
-@app.get("/items")
-def create_item(item: str):
-    print(item)
-    items[item] = 0
-    return items
-
-
-@app.get("/update")
-def update_item(item: str, value: int):
-    if items.get(item, None) == None:
-        return "error: item not found"
-
-    items[item] = value
-    return items[item]
-
-
-@app.get("/all")
-def get_items_item():
-    return items
-
-
-
-# Define a Pydantic model for input data validation
-class InputFeatures(BaseModel):
-    age: float
-    appearance: int
-    minutes_played: int
-    days_injured: int
-    games_injured: int
-    award: int
-    current_value: int
-
-def preprocessing(input_features: InputFeatures):
-    dict_f = {
-    'age': input_features.age,
-    'appearance': input_features.appearance,
-    'minutes_played': input_features.minutes_played,
-    'days_injured': input_features.days_injured,
-    'games_injured': input_features.games_injured,
-    'award': input_features.award,
-    'current_value': input_features.current_value,
-
-    }
-    
-    
-    # Convert dictionary values to a list in the correct order
-    # features_list = [dict_f[key] for key in sorted(dict_f)]
-    # Scale the input features
-    scaled_features = scaler.transform([list(dict_f.values())])
-    
-    return scaled_features
-
-def predict(input_features: InputFeatures):
-    data = preprocessing(input_features)
-    
-@app.post("/predict")
-
-async def predict(input_features: InputFeatures):
-    data = preprocessing(input_features)
-    y_pred = model.predict(data)
-    return {"pred": y_pred.tolist()[0]}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,91 +1,147 @@
 import streamlit as st
 import requests
-import json
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import joblib
+import os
 
-# Manually include the statistics
-statistics = {
-    "age": {"mean": 26.04, "max": 43},
-    "appearance": {"mean": 36.41, "max": 107},
-    "minutes_played": {"mean": 2470.79, "max": 9510},
-    "days_injured": {"mean": 117.96, "max": 2349},
-    "games_injured": {"mean": 15.83, "max": 339},
-    "award": {"mean": 1.96, "max": 92},
-    "current_value": {"mean": 3622971, "max": 180000000}
+# Function to load models and scaler
+def load_models():
+    model_dir = os.path.dirname(__file__)
+    kmeans_model = joblib.load(os.path.join(model_dir, 'models/kmeans_model.pkl'))
+    dbscan_model = joblib.load(os.path.join(model_dir, 'models/dbscan_model.pkl'))
+    scaler = joblib.load(os.path.join(model_dir, 'models/scaler.pkl'))
+    return kmeans_model, dbscan_model, scaler
+
+# Load models and scaler
+kmeans_model, dbscan_model, scaler = load_models()
+
+# Mapping of Category_encoded to Category names
+category_mapping = {
+    8: "Café",
+    4: "Bakery",
+    5: "Breakfast",
+    9: "Donuts",
+    7: "Burgers",
+    25: "Restaurant",
+    27: "Sandwich Spot",
+    23: "Pizza",
+    22: "Middle Eastern",
+    19: "Japanese",
+    29: "Shawarma Restaurant",
+    31: "Steakhouse",
+    12: "Fast Food",
+    18: "Italian",
+    17: "Indian",
+    26: "Salad",
+    14: "Food Truck",
+    15: "French",
+    1: "Armenian",
+    13: "Food Court",
+    21: "Mediterranean",
+    30: "Snacks",
+    20: "Lebanese",
+    3: "BBQ",
+    11: "Falafel",
+    16: "Fried Chicken",
+    24: "Poke Restaurant",
+    33: "Swiss",
+    32: "Sushi",
+    34: "Vegan and Vegetarian Restaurant",
+    6: "Buffet",
+    28: "Seafood",
+    0: "American",
+    2: "Asian",
+    10: "Eastern European"
 }
 
-# Add description to the Streamlit app
-st.title("⚽ Player Value Prediction")
+# Reverse mapping for dropdown display
+reverse_category_mapping = {v: k for k, v in category_mapping.items()}
 
-st.markdown("""
-This application predicts the value of a football player based on various attributes such as age, appearance, minutes played, days injured, games injured, awards won, and current market value. 
-The model uses a K-Nearest Neighbors (KNN) algorithm to make predictions.
-The dataset used for training the model includes the following columns:
-- **Age**: The age of the player
-- **Appearance**: Number of appearances made by the player
-- **Minutes Played**: Total minutes played by the player
-- **Days Injured**: Total number of days the player was injured
-- **Games Injured**: Total number of games missed due to injury
-- **Award**: Number of awards won by the player
-- **Current Value**: Current market value of the player in dollars
-""")
+# Sidebar options
+option = st.sidebar.selectbox(
+    "Choose the section:",
+    ("Home", "KMeans Clustering", "DBSCAN Clustering")
+)
 
-# Add a sidebar with dataset statistics
-st.sidebar.header("📊 General Information")
-for key, value in statistics.items():
-    st.sidebar.markdown(f"**{key.capitalize()}**\n- Mean: {value['mean']}\n- Max: {value['max']}")
+if option == "Home":
+    st.title("Restaurant Clustering Prediction")
+    st.write("""
+        ## Welcome to the Restaurant Clustering Prediction App
+        This application allows you to predict restaurant clusters using KMeans and DBSCAN clustering methods. 
+        Explore the visualizations from the training phase and then switch to the models to make predictions.
+    """)
+    
+    st.header("Training Phase Visualizations")
 
-# Create columns for the input fields
-col1, col2 = st.columns(2)
+    # Elbow Method for KMeans
+    st.subheader("Elbow Method for KMeans")
+    wcss = joblib.load('models/wcss.pkl')  # Ensure wcss.pkl is saved during the training phase
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(1, 20), wcss, marker='o', linestyle='-', color='b')
+    plt.title('Elbow Method')
+    plt.xlabel('Number of clusters')
+    plt.ylabel('WCSS')
+    plt.grid(True)
+    st.pyplot(plt)
 
-with col1:
-    st.markdown("### Age")
-    age = st.number_input("Age", min_value=0)
-    
-    st.markdown("### Minutes Played")
-    minutes_played = st.number_input("Minutes Played", min_value=0)
-    
-    st.markdown("### Games Injured")
-    games_injured = st.number_input("Games Injured", min_value=0)
-    
-    st.markdown("### Current Value")
-    current_value = st.number_input("Current Value", min_value=0)
+    # K-Distance Graph for DBSCAN
+    st.subheader("K-Distance Graph for DBSCAN")
+    k_dist_sorted = joblib.load('models/k_dist_sorted.pkl')  # Ensure k_dist_sorted.pkl is saved during the training phase
+    plt.figure(figsize=(8, 6))
+    plt.plot(k_dist_sorted)
+    plt.title('K-Distance Graph')
+    plt.xlabel('Points sorted by distance')
+    plt.ylabel('k-distance (eps value)')
+    plt.grid(True)
+    st.pyplot(plt)
 
-with col2:
-    st.markdown("### Appearance")
-    appearance = st.number_input("Appearance", min_value=0)
-    
-    st.markdown("### Days Injured")
-    days_injured = st.number_input("Days Injured", min_value=0)
-    
-    st.markdown("### Awards")
-    award = st.number_input("Awards", min_value=0)
+    # Correlation Matrix
+    st.subheader("Correlation Matrix")
+    df = pd.read_csv("Data/Cleand_data.csv")  # Ensure your data.csv is in the correct path
+    correlation = df.corr(numeric_only=True)
+    plt.figure(figsize=(6, 4))
+    sns.heatmap(round(correlation, 2), annot=True, cmap='coolwarm')
+    plt.title('Correlation Matrix')
+    st.pyplot(plt)
 
-# Add a button for prediction
-if st.button("Predict"):
-    # Create input data dictionary
-    input_data = {
-        "age": age,
-        "appearance": appearance,
-        "minutes_played": minutes_played,
-        "days_injured": days_injured,
-        "games_injured": games_injured,
-        "award": award,
-        "current_value": current_value
-    }
-    
-    # Make a POST request to the FastAPI endpoint
-    response = requests.post("https://use-case-7-mijx.onrender.com/predict", data=json.dumps(input_data), headers={"Content-Type": "application/json"})
-    
-    # Display the prediction result
-    if response.status_code == 200:
+elif option == "KMeans Clustering":
+    st.title("KMeans Clustering")
+    score = st.number_input("Enter Score", min_value=0.0, max_value=10.0, value=9.0)
+    price_range = st.selectbox("Select Price Range", ["$", "$$", "$$$"])
+    price_range_encoded = {"$": 0, "$$": 1, "$$$": 2}[price_range]
+    category = st.selectbox("Select Category", list(reverse_category_mapping.keys()))
+    category_encoded = reverse_category_mapping[category]
+
+    if st.button("Predict KMeans"):
+        response = requests.post("http://localhost:8000/predict/kmeans", json={
+            "Score": score, 
+            "Price_Range_encoded": price_range_encoded,
+            "Category_encoded": category_encoded
+        })
         result = response.json()
-        # Mapping from prediction to label
-        prediction_mapping = {0: 'High', 1: 'Medium', 2: 'Low'}
-        pred_label = prediction_mapping.get(result['pred'], "Unknown")
-        st.success(f"**Predicted Value**: {pred_label}")
-    else:
-        st.error("Error in prediction request")
+        if "cluster" in result:
+            st.write(f"KMeans Cluster: {result['cluster']}")
+        else:
+            st.write("KMeans Cluster: Not assigned to any cluster")
 
-# Footer
-st.markdown("---")
-st.markdown("Developed by Tariq Al-Qahtani")
+elif option == "DBSCAN Clustering":
+    st.title("DBSCAN Clustering")
+    score = st.number_input("Enter Score", min_value=0.0, max_value=10.0, value=9.0)
+    price_range = st.selectbox("Select Price Range", ["$", "$$", "$$$"])
+    price_range_encoded = {"$": 0, "$$": 1, "$$$": 2}[price_range]
+    category = st.selectbox("Select Category", list(reverse_category_mapping.keys()))
+    category_encoded = reverse_category_mapping[category]
+
+    if st.button("Predict DBSCAN"):
+        response = requests.post("http://localhost:8000/predict/dbscan", json={
+            "Score": score, 
+            "Price_Range_encoded": price_range_encoded,
+            "Category_encoded": category_encoded
+        })
+        result = response.json()
+        if "cluster" in result:
+            st.write(f"DBSCAN Cluster: {result['cluster']}")
+        else:
+            st.write("DBSCAN Cluster: Not assigned to any cluster")
