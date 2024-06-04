@@ -15,7 +15,11 @@ def load_models():
     return kmeans_model, dbscan_model, scaler
 
 # Load models and scaler
-kmeans_model, dbscan_model, scaler = load_models()
+try:
+    kmeans_model, dbscan_model, scaler = load_models()
+except FileNotFoundError as e:
+    st.error(f"Model file not found: {e}")
+    st.stop()
 
 # Mapping of Category_encoded to Category names
 category_mapping = {
@@ -72,39 +76,48 @@ if option == "Home":
         This application allows you to predict restaurant clusters using KMeans and DBSCAN clustering methods. 
         Explore the visualizations from the training phase and then switch to the models to make predictions.
     """)
-    
+
     st.header("Training Phase Visualizations")
 
     # Elbow Method for KMeans
     st.subheader("Elbow Method for KMeans")
-    wcss = joblib.load('models/wcss.pkl')  # Ensure wcss.pkl is saved during the training phase
-    plt.figure(figsize=(10, 6))
-    plt.plot(range(1, 20), wcss, marker='o', linestyle='-', color='b')
-    plt.title('Elbow Method')
-    plt.xlabel('Number of clusters')
-    plt.ylabel('WCSS')
-    plt.grid(True)
-    st.pyplot(plt)
+    try:
+        wcss = joblib.load('models/wcss.pkl')  
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(1, 20), wcss, marker='o', linestyle='-', color='b')
+        plt.title('Elbow Method')
+        plt.xlabel('Number of clusters')
+        plt.ylabel('WCSS')
+        plt.grid(True)
+        st.pyplot(plt)
+    except FileNotFoundError:
+        st.error("wcss.pkl file not found. Please make sure the file is in the 'models' directory.")
 
     # K-Distance Graph for DBSCAN
     st.subheader("K-Distance Graph for DBSCAN")
-    k_dist_sorted = joblib.load('models/k_dist_sorted.pkl')  # Ensure k_dist_sorted.pkl is saved during the training phase
-    plt.figure(figsize=(8, 6))
-    plt.plot(k_dist_sorted)
-    plt.title('K-Distance Graph')
-    plt.xlabel('Points sorted by distance')
-    plt.ylabel('k-distance (eps value)')
-    plt.grid(True)
-    st.pyplot(plt)
+    try:
+        k_dist_sorted = joblib.load('models/k_dist_sorted.pkl')  
+        plt.figure(figsize=(8, 6))
+        plt.plot(k_dist_sorted)
+        plt.title('K-Distance Graph')
+        plt.xlabel('Points sorted by distance')
+        plt.ylabel('k-distance (eps value)')
+        plt.grid(True)
+        st.pyplot(plt)
+    except FileNotFoundError:
+        st.error("k_dist_sorted.pkl file not found. Please make sure the file is in the 'models' directory.")
 
     # Correlation Matrix
     st.subheader("Correlation Matrix")
-    df = pd.read_csv("Data/Cleand_data.csv")  # Ensure your data.csv is in the correct path
-    correlation = df.corr(numeric_only=True)
-    plt.figure(figsize=(6, 4))
-    sns.heatmap(round(correlation, 2), annot=True, cmap='coolwarm')
-    plt.title('Correlation Matrix')
-    st.pyplot(plt)
+    try:
+        df = pd.read_csv("Data/Cleand_data.csv")  
+        correlation = df.corr(numeric_only=True)
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(round(correlation, 2), annot=True, cmap='coolwarm')
+        plt.title('Correlation Matrix')
+        st.pyplot(plt)
+    except FileNotFoundError:
+        st.error("Cleand_data.csv file not found. Please make sure the file is in the 'Data' directory.")
 
 elif option == "KMeans Clustering":
     st.title("KMeans Clustering")
