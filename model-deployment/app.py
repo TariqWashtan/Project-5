@@ -115,7 +115,7 @@ elif option == "KMeans Clustering":
     category_encoded = reverse_category_mapping[category]
 
     if st.button("Predict KMeans"):
-        response = requests.post("http://localhost:8000/predict/kmeans", json={
+        response = requests.post("https://project-5-itbj.onrender.com/predict/kmeans", json={
             "Score": score, 
             "Price_Range_encoded": price_range_encoded,
             "Category_encoded": category_encoded
@@ -135,7 +135,7 @@ elif option == "DBSCAN Clustering":
     category_encoded = reverse_category_mapping[category]
 
     if st.button("Predict DBSCAN"):
-        response = requests.post("http://localhost:8000/predict/dbscan", json={
+        response = requests.post("https://project-5-itbj.onrender.com/predict/dbscan", json={
             "Score": score, 
             "Price_Range_encoded": price_range_encoded,
             "Category_encoded": category_encoded
